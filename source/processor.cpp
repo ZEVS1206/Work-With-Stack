@@ -2,82 +2,141 @@
 #include <math.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <ctype.h>
 
 #include "stack.h"
 #include "processor.h"
 
-Errors_of_CPU do_cmd()
+Errors_of_CPU create_commands()
+{
+    FILE *fp = fopen("source/cpu_commands.txt", "r");
+    struct MySPU spu = {0};
+    struct stat statistics = {0};
+    int res = stat("source/cpu_commands.txt", &statistics);
+    if (res != 0)
+    {
+        return ERROR_OF_GETTING_INFORMATION_ABOUT_CMD;
+    }
+    size_t size_of_file = statistics.st_size;
+    char *buffer = (char *) calloc(size_of_file, sizeof(char));
+    if (buffer == NULL)
+    {
+        return ERROR_OF_GETTING_INFORMATION_ABOUT_CMD;
+    }
+    size_t result_of_reading = fread(buffer, sizeof(char), size_of_file, fp);
+    size_t size = 0;
+    for (size_t i = 0; i < size_of_file; i++)
+    {
+        if (isspace(buffer[i]))
+        {
+            size++;
+        }
+    }
+    spu.size_of_commands = size;
+    spu.commands = (int *) calloc(size, sizeof(int));
+    size_t j = 0;
+    size_t i = 0;
+    while (i < size_of_file)
+    {
+        char tmp[10] = {0};
+        int k = 0;
+        while (!isspace(buffer[i]))
+        {
+            tmp[k++] = buffer[i];
+            i++;
+        }
+        tmp[k] = '\0';
+        (spu.commands)[j++] = atoi(tmp);
+        i++;
+    }
+    Errors_of_CPU error = NO_CPU_ERRORS;
+    error = do_cmd(&spu);
+    free(buffer);
+    return error;
+}
+
+
+
+Errors_of_CPU do_cmd(struct MySPU *spu)
 {
     struct MyStack stack = {0};
     STACK_CTOR(&stack, 10);
     Errors error = NO_ERRORS;
-    bool fl = true;
-    while (fl)
+    size_t i = 0;
+    while (i < spu->size_of_commands)
     {
-        char cmd[50] = "";
-        scanf("%s", cmd);
-        if (strcasecmp(cmd, "push") == 0)
+        Commands cmd = (Commands)(spu->commands)[i];
+        switch (cmd)
         {
-            int elem = 0;
-            scanf("%d", &elem);
-            error = stack_push(&stack, elem);
-        } else if (strcasecmp(cmd, "pop") == 0)
-        {
-            int last_element = 0;
-            error = stack_pop(&stack, &last_element);
-        } else if (strcasecmp(cmd, "add") == 0)
-        {
-            if (stack.size < 1)
+            case CMD_PUSH:
             {
-                return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                i++;
+                int elem = (spu->commands)[i];
+                error = stack_push(&stack, elem);
+                break;
             }
-            int first_operand = 0;
-            int second_operand = 0;
-            error = stack_pop(&stack, &second_operand);
-            error = stack_pop(&stack, &first_operand);
-            printf("first_operand=%d\nsecond_operand=%d\n", first_operand, second_operand);
-            error = stack_push(&stack, (first_operand + second_operand));
-        } else if (strcasecmp(cmd, "sub") == 0)
-        {
-            if (stack.size < 1)
+            case CMD_ADD:
             {
-                return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                if (stack.size < 1)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                int first_operand = 0;
+                int second_operand = 0;
+                error = stack_pop(&stack, &second_operand);
+                error = stack_pop(&stack, &first_operand);
+                error = stack_push(&stack, (first_operand + second_operand));
+                break;
             }
-            int first_operand = 0;
-            int second_operand = 0;
-            error = stack_pop(&stack, &second_operand);
-            error = stack_pop(&stack, &first_operand);
-            error = stack_push(&stack, (first_operand - second_operand));
-        } else if (strcasecmp(cmd, "mul") == 0)
-        {
-            if (stack.size < 1)
+            case CMD_SUB:
             {
-                return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                if (stack.size < 1)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                int first_operand = 0;
+                int second_operand = 0;
+                error = stack_pop(&stack, &second_operand);
+                error = stack_pop(&stack, &first_operand);
+                error = stack_push(&stack, (first_operand - second_operand));
+                break;
             }
-            int first_operand = 0;
-            int second_operand = 0;
-            error = stack_pop(&stack, &second_operand);
-            error = stack_pop(&stack, &first_operand);
-            error = stack_push(&stack, (first_operand * second_operand));
-        } else if (strcasecmp(cmd, "div") == 0)
-        {
-            if (stack.size < 1)
+            case CMD_MUL:
             {
-                return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                if (stack.size < 1)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                int first_operand = 0;
+                int second_operand = 0;
+                error = stack_pop(&stack, &second_operand);
+                error = stack_pop(&stack, &first_operand);
+                error = stack_push(&stack, (first_operand * second_operand));
+                break;
             }
-            int first_operand = 0;
-            int second_operand = 0;
-            error = stack_pop(&stack, &second_operand);
-            error = stack_pop(&stack, &first_operand);
-            error = stack_push(&stack, (first_operand / second_operand));
-        } else if (strcasecmp(cmd, "hlt") == 0)
-        {
-            fl = false;
-        } else
-        {
-            return ERROR_OF_UNKNOWN_CMD;
+            case CMD_DIV:
+            {
+                if (stack.size < 1)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                int first_operand = 0;
+                int second_operand = 0;
+                error = stack_pop(&stack, &second_operand);
+                error = stack_pop(&stack, &first_operand);
+                error = stack_push(&stack, (first_operand / second_operand));
+                break;
+            }
+            case CMD_HLT:
+                break;
+            default:
+                return ERROR_OF_UNKNOWN_CMD;
+                break;
         }
+        i++;
     }
+    free(spu->commands);
     error = stack_destructor(&stack);
     return NO_CPU_ERRORS;
 }

@@ -9,7 +9,7 @@ typedef int Stack_Elem_t;
 typedef int Stack_Canary_t;
 
 #define DEBUG
-#define FULL_DEBUG
+//#define FULL_DEBUG
 
 #ifdef DEBUG
 #define LESS_DEBUG(...) __VA_ARGS__

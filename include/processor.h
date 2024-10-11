@@ -21,14 +21,24 @@ enum Commands
 
 enum Errors_of_CPU
 {
-    ERROR_OF_UNKNOWN_CMD                  =  2,
-    ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK =  1,
-    NO_CPU_ERRORS                         =  0
+    ERROR_OF_GETTING_INFORMATION_ABOUT_CMD = 3,
+    ERROR_OF_UNKNOWN_CMD                   = 2,
+    ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK  = 1,
+    NO_CPU_ERRORS                          = 0
+};
+
+struct MySPU
+{
+    int *commands;
+    size_t size_of_commands;
+    size_t ip;
+    MyStack *stack;
+    int *registers;
+    size_t size_of_registers;
 };
 
 Errors_of_CPU create_commands();
-Errors_of_CPU get_commands(int *codes, size_t size);
-Errors_of_CPU do_cmd();
+Errors_of_CPU do_cmd(struct MySPU *spu);
 
 
 #endif

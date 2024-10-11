@@ -5,7 +5,7 @@
 #include "processor.h"
 
 int main(){
-    Errors_of_CPU error = do_cmd();
+    Errors_of_CPU error = create_commands();
     printf("%d\n", error);
     return 0;
 }

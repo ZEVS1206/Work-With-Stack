@@ -1,0 +1,146 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+
+#include "../../Processor/include/processor.h"
+#include "assembler.h"
+
+
+Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE *file_pointer)
+{
+    if (commands == NULL || file_pointer == NULL)
+    {
+        return ERROR_OF_READING_FROM_FILE;
+    }
+    struct stat statistics = {0};
+    int res = stat("source/text_cpu_commands.txt", &statistics);
+    if (res != 0)
+    {
+        return ERROR_OF_READING_FROM_FILE;
+    }
+    size_t size_of_file = (size_t)statistics.st_size;
+    size_t i = 0;
+    while (i < count_of_rows && fscanf(file_pointer, "%s", commands[i].command))
+    {
+        if (strcasecmp(commands[i].command, "push") == 0)
+        {
+            fscanf(file_pointer, "%d", &(commands[i].element));
+        }
+        i++;
+    }
+    return NO_ASM_ERRORS;
+}
+
+
+Errors_of_ASM transform_commands(struct Command *commands, size_t count_of_rows)
+{
+    if (commands == NULL)
+    {
+        return ERROR_OF_NO_COMMANDS;
+    }
+    for (size_t i = 0; i < count_of_rows; i++)
+    {
+        if (strcasecmp(commands[i].command, "push") == 0)
+        {
+            commands[i].transformed_command = CMD_PUSH;
+        }
+        else if (strcasecmp(commands[i].command, "add") == 0)
+        {
+            commands[i].transformed_command = CMD_ADD;
+        }
+        else if (strcasecmp(commands[i].command, "sub") == 0)
+        {
+            commands[i].transformed_command = CMD_SUB;
+        }
+        else if (strcasecmp(commands[i].command, "mul") == 0)
+        {
+            commands[i].transformed_command = CMD_MUL;
+        }
+        else if (strcasecmp(commands[i].command, "div") == 0)
+        {
+            commands[i].transformed_command = CMD_DIV;
+        }
+        else if (strcasecmp(commands[i].command, "out") == 0)
+        {
+            commands[i].transformed_command = CMD_OUT;
+        }
+        else if (strcasecmp(commands[i].command, "dump") == 0)
+        {
+            commands[i].transformed_command = CMD_DUMP;
+        }
+        else if (strcasecmp(commands[i].command, "hlt") == 0)
+        {
+            commands[i].transformed_command = CMD_HLT;
+        }
+        else
+        {
+            commands[i].transformed_command = CMD_UNKNOWN;
+        }
+    }
+    return NO_ASM_ERRORS;
+}
+
+Errors_of_ASM create_file_with_commands(struct Command *commands, size_t count_of_rows)
+{
+    FILE *fp = fopen("source/cpu_commands.txt", "w");
+    if (commands == NULL || fp == NULL)
+    {
+        return ERROR_OF_CREATING_OUT_FILE;
+    }
+    for (size_t i = 0; i < count_of_rows; i++)
+    {
+        if (commands[i].transformed_command == CMD_PUSH)
+        {
+            fprintf(fp, "%d %d\n", commands[i].transformed_command, commands[i].element);
+        }
+        else
+        {
+            fprintf(fp, "%d\n", commands[i].transformed_command);
+        }
+    }
+    return NO_ASM_ERRORS;
+}
+
+
+
+int main()
+{
+    FILE *fp = fopen("source/text_cpu_commands.txt", "rb");
+    int c = 0;
+    size_t count_of_rows = 0;
+    while ((c = getc(fp)) != EOF)
+    {
+        if (c == '\n')
+        {
+            count_of_rows++;
+        }
+    }
+    rewind(fp);
+    struct Command *commands = (Command *) calloc(count_of_rows, sizeof(Command));
+    if (commands == NULL)
+    {
+        return ERROR_OF_READING_FROM_FILE;
+    }
+    Errors_of_ASM error = get_commands(commands, count_of_rows, fp);
+    if (error != NO_ASM_ERRORS)
+    {
+        fprintf(stderr, "error=%d\n", error);
+        return 0;
+    }
+    error = transform_commands(commands, count_of_rows);
+    if (error != NO_ASM_ERRORS)
+    {
+        fprintf(stderr, "error=%d\n", error);
+        return 0;
+    }
+    error = create_file_with_commands(commands, count_of_rows);
+    if (error != NO_ASM_ERRORS)
+    {
+        fprintf(stderr, "error=%d\n", error);
+        return 0;
+    }
+    free(commands);
+    return 0;
+}

@@ -9,7 +9,7 @@ CFLAGS+=$(INCLUDE)
 HEADERS=$(wildcard $(HEADERS_DIR)/*.h)
 SOURCES=$(wildcard $(SOURCE_DIR)/*.cpp)
 OBJECTS=$(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES))
-EXEC_NAME := stack.exe
+EXEC_NAME := processor.exe
 
 mode ?=
 

@@ -8,7 +8,7 @@ const int COEFFICIENT = 2;
 typedef int Stack_Elem_t;
 typedef int Stack_Canary_t;
 
-#define DEBUG
+//#define DEBUG
 //#define FULL_DEBUG
 
 #ifdef DEBUG
@@ -67,9 +67,10 @@ struct MyStack
 
 Errors stack_constructor(struct MyStack *stack, int begin_capacity ON_DEBUG(,const char *name, const char *file, int line));
 void stack_dump         (struct MyStack *stack ON_DEBUG(,const char *file, int line));
-
+void special_dump(struct MyStack *stack);
 Errors stack_destructor(struct MyStack *stack);
 Errors stack_check(const struct MyStack *stack);
+Errors stack_element(struct MyStack *stack);
 Errors stack_push(struct MyStack *stack, Stack_Elem_t element);
 Errors stack_pop(struct MyStack *stack, Stack_Elem_t *element);
 uint64_t hash (const struct MyStack *stack, int capacity);

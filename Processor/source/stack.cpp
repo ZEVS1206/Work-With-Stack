@@ -172,7 +172,7 @@ static Errors do_recalloc(struct MyStack *stack, Stack_Elem_t *reserve)
     Errors error = STACK_ASSERT(stack);
     reserve = stack->data;
     Stack_Elem_t *copy = (Stack_Elem_t *) calloc((size_t)stack->capacity + 2, sizeof(Stack_Elem_t));
-    memcpy(copy, stack->data - 1, stack->capacity + 2);
+    memcpy(copy, stack->data - 1, (size_t)stack->capacity + 2);
     *(stack->data + stack->old_capacity) = 0;
     stack->data = (Stack_Elem_t *) recalloc((stack->data - 1), (size_t)stack->capacity + 2, sizeof(Stack_Elem_t), size_t(stack->old_capacity));
     if (stack->data == NULL)
@@ -181,7 +181,7 @@ static Errors do_recalloc(struct MyStack *stack, Stack_Elem_t *reserve)
         STACK_DUMP(stack);
         STACK_STOP(ERROR_OF_RECALLOC_STACK);
     }
-    memcpy(stack->data, copy, stack->capacity);
+    memcpy(stack->data, copy, (size_t)stack->capacity);
     free(copy);
     stack->old_capacity = stack->capacity;
     //*(stack->data) = (const Stack_Elem_t)0xDEADA;
@@ -220,6 +220,20 @@ Errors stack_check(const struct MyStack *stack)
         return ERROR_OF_NULL_SIZE;
     }
     return NO_ERRORS;
+}
+
+Errors stack_element(struct MyStack *stack)
+{
+    hash_check(stack, stack->capacity);
+    Errors error = STACK_ASSERT(stack);
+    if (stack->size - 1 < 0)
+    {
+        return ERROR_OF_NULL_SIZE;
+    }
+    printf("Last element in stack = %d\n", (stack->data)[stack->size - 1]);
+    error = STACK_ASSERT(stack);
+    hash_check(stack, stack->capacity);
+    return error;
 }
 
 Errors stack_push(struct MyStack *stack, Stack_Elem_t element)
@@ -266,7 +280,7 @@ Errors stack_pop(struct MyStack *stack, Stack_Elem_t *element)
     }
     Errors error = STACK_ASSERT(stack);
     *element = (stack->data)[stack->size - 1];
-    printf("last_element=%d\n\n", *element);
+    LESS_DEBUG(printf("last_element=%d\n\n", *element);)
     (stack->data)[stack->size - 1] = 0;
     (stack->size)--;
     new_hash(stack);
@@ -287,7 +301,6 @@ Errors stack_pop(struct MyStack *stack, Stack_Elem_t *element)
     hash_check(stack, stack->capacity);
     //hash_protect(stack, stack->capacity);
     check_canaries(stack);
-    printf("1\n");
     STACK_DUMP(stack);
     error = STACK_ASSERT(stack);
     return error;
@@ -325,4 +338,22 @@ void stack_dump(struct MyStack *stack ON_DEBUG(,const char *file, int line))
     LESS_DEBUG(printf("\n\n");)
     return;
 }
+
+void special_dump(struct MyStack *stack)
+{
+    if (stack != NULL)
+    {
+        if (stack->data != NULL)
+        {
+        printf("Stack:\n");
+        for (int i = 0; i < stack->size; i++)
+        {
+            printf("%d ", (stack->data)[i]);
+        }
+        printf("\n\n");
+        }
+    }
+    return;
+}
+
 

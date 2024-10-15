@@ -74,6 +74,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 i++;
                 int elem = (spu->commands)[i];
                 error = stack_push(&stack, elem);
+                //special_dump(&stack);
                 break;
             }
             case CMD_ADD:
@@ -87,6 +88,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(&stack, &second_operand);
                 error = stack_pop(&stack, &first_operand);
                 error = stack_push(&stack, (first_operand + second_operand));
+                //special_dump(&stack);
                 break;
             }
             case CMD_SUB:
@@ -100,6 +102,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(&stack, &second_operand);
                 error = stack_pop(&stack, &first_operand);
                 error = stack_push(&stack, (first_operand - second_operand));
+                //special_dump(&stack);
                 break;
             }
             case CMD_MUL:
@@ -113,6 +116,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(&stack, &second_operand);
                 error = stack_pop(&stack, &first_operand);
                 error = stack_push(&stack, (first_operand * second_operand));
+                //special_dump(&stack);
                 break;
             }
             case CMD_DIV:
@@ -126,6 +130,21 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(&stack, &second_operand);
                 error = stack_pop(&stack, &first_operand);
                 error = stack_push(&stack, (first_operand / second_operand));
+                //special_dump(&stack);
+                break;
+            }
+            case CMD_OUT:
+            {
+                if (stack.size - 1 < 0)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                error = stack_element(&stack);
+                break;
+            }
+            case CMD_DUMP:
+            {
+                special_dump(&stack);
                 break;
             }
             case CMD_HLT:

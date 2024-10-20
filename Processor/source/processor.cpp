@@ -8,16 +8,18 @@
 #include "stack.h"
 #include "processor.h"
 
+
 Errors_of_CPU create_commands()
 {
-    FILE *fp = fopen("source/cpu_commands.txt", "r");
+    FILE *fp = fopen("Assembler/source/cpu_commands.txt", "r");
     struct MySPU spu = {0};
     struct stat statistics = {0};
-    int res = stat("source/cpu_commands.txt", &statistics);
+    int res = stat("Assembler/source/cpu_commands.txt", &statistics);
     if (res != 0)
     {
         return ERROR_OF_GETTING_INFORMATION_ABOUT_CMD;
     }
+
     size_t size_of_file = statistics.st_size;
     char *buffer = (char *) calloc(size_of_file, sizeof(char));
     if (buffer == NULL)
@@ -158,5 +160,14 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
     free(spu->commands);
     error = stack_destructor(&stack);
     return NO_CPU_ERRORS;
+}
+
+int main()
+{
+    printf("Processor started!\n");
+    Errors_of_CPU error = create_commands();
+    fprintf(stderr, "error=%d\n", error);
+    printf("Processor finished!\n");
+    return 0;
 }
 

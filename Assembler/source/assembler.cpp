@@ -7,6 +7,7 @@
 #include "../../Processor/include/processor.h"
 #include "assembler.h"
 
+static Errors_of_ASM destructor(struct Command *commands);
 
 Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE *file_pointer)
 {
@@ -14,13 +15,6 @@ Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE 
     {
         return ERROR_OF_READING_FROM_FILE;
     }
-    struct stat statistics = {0};
-    int res = stat("source/text_cpu_commands.txt", &statistics);
-    if (res != 0)
-    {
-        return ERROR_OF_READING_FROM_FILE;
-    }
-    size_t size_of_file = (size_t)statistics.st_size;
     size_t i = 0;
     while (i < count_of_rows && fscanf(file_pointer, "%s", commands[i].command))
     {
@@ -107,6 +101,7 @@ Errors_of_ASM create_file_with_commands(struct Command *commands, size_t count_o
 
 int main()
 {
+    printf("Assembler started!\n");
     FILE *fp = fopen("source/text_cpu_commands.txt", "rb");
     int c = 0;
     size_t count_of_rows = 0;
@@ -119,11 +114,17 @@ int main()
     }
     rewind(fp);
     struct Command *commands = (Command *) calloc(count_of_rows, sizeof(Command));
+    Errors_of_ASM error = NO_ASM_ERRORS;
     if (commands == NULL)
     {
-        return ERROR_OF_READING_FROM_FILE;
+        error = ERROR_OF_CREATE_ARRAY;
     }
-    Errors_of_ASM error = get_commands(commands, count_of_rows, fp);
+    if (error != NO_ASM_ERRORS)
+    {
+        fprintf(stderr, "error=%d\n", error);
+        return 0;
+    }
+    error = get_commands(commands, count_of_rows, fp);
     if (error != NO_ASM_ERRORS)
     {
         fprintf(stderr, "error=%d\n", error);
@@ -141,6 +142,24 @@ int main()
         fprintf(stderr, "error=%d\n", error);
         return 0;
     }
-    free(commands);
+    error = destructor(commands);
+    if (error != NO_ASM_ERRORS)
+    {
+        fprintf(stderr, "error=%d\n", error);
+        return 0;
+    }
+    printf("Assembler finished!\n");
     return 0;
+}
+
+
+
+static Errors_of_ASM destructor(struct Command *commands)
+{
+    if (commands == NULL)
+    {
+        return ERROR_OF_DESTRUCTOR;
+    }
+    free(commands);
+    return NO_ASM_ERRORS;
 }

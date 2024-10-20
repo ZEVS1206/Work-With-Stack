@@ -11,15 +11,15 @@ SOURCES=$(wildcard $(SOURCE_DIR)/*.cpp)
 OBJECTS=$(patsubst $(SOURCE_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES))
 EXEC_NAME := processor.exe
 
-mode ?=
+dir ?= $(BUILD_DIR)/$(EXEC_NAME)
 
 
 # wildcart patsubst
 .PHONY: clean all run
 
-all: $(BUILD_DIR)/$(EXEC_NAME)
+all: $(dir)
 
-$(BUILD_DIR)/$(EXEC_NAME): $(OBJECTS) | $(BUILD_DIR)
+$(dir): $(OBJECTS) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $^ -o $@
 
 $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.cpp | $(BUILD_DIR)
@@ -32,4 +32,4 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 run:
-	$(BUILD_DIR)/$(EXEC_NAME)
+	$(dir)

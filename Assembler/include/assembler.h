@@ -9,7 +9,9 @@ enum Errors_of_ASM
     ERROR_OF_UNKNOWN_TEXT_CMD  = 1,
     ERROR_OF_READING_FROM_FILE = 2,
     ERROR_OF_NO_COMMANDS       = 3,
-    ERROR_OF_CREATING_OUT_FILE = 4
+    ERROR_OF_CREATING_OUT_FILE = 4,
+    ERROR_OF_DESTRUCTOR        = 5,
+    ERROR_OF_CREATE_ARRAY      = 6
 };
 
 struct Command

@@ -1,5 +1,6 @@
-push 30
-push 70
-add
+push 11
+push 11
+mul
 out
+ja 0
 hlt

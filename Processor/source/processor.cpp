@@ -62,8 +62,8 @@ Errors_of_CPU create_commands()
 
 Errors_of_CPU do_cmd(struct MySPU *spu)
 {
-    struct MyStack stack = {0};
-    STACK_CTOR(&stack, 10);
+    spu->stack = (struct MyStack *) calloc(1, sizeof(struct MyStack));
+    STACK_CTOR(spu->stack, 10);
     Errors error = NO_ERRORS;
     size_t i = 0;
     while (i < spu->size_of_commands)
@@ -74,91 +74,157 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_PUSH:
             {
                 i++;
-                int elem = (spu->commands)[i];
-                error = stack_push(&stack, elem);
+                Stack_Elem_t elem = (spu->commands)[i];
+                error = stack_push(spu->stack, elem);
                 //special_dump(&stack);
                 break;
             }
             case CMD_ADD:
             {
-                if (stack.size < 1)
+                if ((spu->stack)->size < 1)
                 {
                     return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
                 }
-                int first_operand = 0;
-                int second_operand = 0;
-                error = stack_pop(&stack, &second_operand);
-                error = stack_pop(&stack, &first_operand);
-                error = stack_push(&stack, (first_operand + second_operand));
+                Stack_Elem_t first_operand = 0;
+                Stack_Elem_t second_operand = 0;
+                error = stack_pop(spu->stack, &second_operand);
+                error = stack_pop(spu->stack, &first_operand);
+                error = stack_push(spu->stack, (first_operand + second_operand));
                 //special_dump(&stack);
                 break;
             }
             case CMD_SUB:
             {
-                if (stack.size < 1)
+                if ((spu->stack)->size < 1)
                 {
                     return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
                 }
-                int first_operand = 0;
-                int second_operand = 0;
-                error = stack_pop(&stack, &second_operand);
-                error = stack_pop(&stack, &first_operand);
-                error = stack_push(&stack, (first_operand - second_operand));
+                Stack_Elem_t first_operand = 0;
+                Stack_Elem_t second_operand = 0;
+                error = stack_pop(spu->stack, &second_operand);
+                error = stack_pop(spu->stack, &first_operand);
+                error = stack_push(spu->stack, (first_operand - second_operand));
                 //special_dump(&stack);
                 break;
             }
             case CMD_MUL:
             {
-                if (stack.size < 1)
+                if ((spu->stack)->size < 1)
                 {
                     return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
                 }
-                int first_operand = 0;
-                int second_operand = 0;
-                error = stack_pop(&stack, &second_operand);
-                error = stack_pop(&stack, &first_operand);
-                error = stack_push(&stack, (first_operand * second_operand));
+                Stack_Elem_t first_operand = 0;
+                Stack_Elem_t second_operand = 0;
+                error = stack_pop(spu->stack, &second_operand);
+                error = stack_pop(spu->stack, &first_operand);
+                error = stack_push(spu->stack, (first_operand * second_operand));
                 //special_dump(&stack);
                 break;
             }
             case CMD_DIV:
             {
-                if (stack.size < 1)
-                {
-                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
-                }
                 int first_operand = 0;
                 int second_operand = 0;
-                error = stack_pop(&stack, &second_operand);
-                error = stack_pop(&stack, &first_operand);
-                error = stack_push(&stack, (first_operand / second_operand));
+                error = stack_pop(spu->stack, &second_operand);
+                error = stack_pop(spu->stack, &first_operand);
+                error = stack_push(spu->stack, (first_operand / second_operand));
                 //special_dump(&stack);
                 break;
             }
             case CMD_OUT:
             {
-                if (stack.size - 1 < 0)
+                if ((spu->stack)->size - 1 < 0)
                 {
                     return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
                 }
-                error = stack_element(&stack);
+                Stack_Elem_t element = 0;
+                error = stack_element(spu->stack, &element);
                 break;
             }
             case CMD_DUMP:
             {
-                special_dump(&stack);
+                special_dump(spu->stack);
                 break;
+            }
+            case CMD_IN:
+            {
+                Stack_Elem_t element = 0;
+                printf("Enter the element: ");
+                scanf("%d", &element);
+                error = stack_push(spu->stack, element);
+                break;
+            }
+            case CMD_SIN:
+            {
+                if ((spu->stack)->size < 1)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                error = stack_push(spu->stack, ceil(sin(operand)));
+                break;
+            }
+            case CMD_COS:
+            {
+                if ((spu->stack)->size < 1)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                error = stack_push(spu->stack, ceil(cos(operand)));
+                break;
+            }
+            case CMD_SQRT:
+            {
+                if ((spu->stack)->size < 1)
+                {
+                    return ERROR_OF_NOT_ENOUGH_ELEMENTS_IN_STACK;
+                }
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                error = stack_push(spu->stack, ceil(sqrt(operand)));
+                break;
+            }
+            case CMD_JMP:
+            {
+                i++;
+                int position = (spu->commands[i]);
+                i = position - 1;
+                break;
+            }
+            case CMD_JA:
+            {
+                i++;
+                Stack_Elem_t operand = 0;
+                error = stack_element(spu->stack, &operand);
+                if (operand > 100)
+                {
+                    break;
+                }
+                else
+                {
+                    int position = (spu->commands[i]);
+                    i = position - 1;
+                    break;
+                }
             }
             case CMD_HLT:
                 break;
-            default:
+            case CMD_UNKNOWN:
                 return ERROR_OF_UNKNOWN_CMD;
+                break;
+            default:
+                printf("cmd=%d\n", cmd);
+                return ERROR_OF_UNKNOWN_TYPE;
                 break;
         }
         i++;
     }
     free(spu->commands);
-    error = stack_destructor(&stack);
+    error = stack_destructor(spu->stack);
+    free(spu->stack);
     return NO_CPU_ERRORS;
 }
 

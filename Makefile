@@ -6,6 +6,7 @@ dir_asm = ../assembler.exe
 dir_proc = ../processor.exe
 compile ?= all
 start ?= all
+cleaning ?= all
 
 start_proc = ./processor.exe
 start_asm = ./assembler.exe
@@ -34,12 +35,24 @@ endif
 endif
 
 
-clean:
+ifeq ($(cleaning), $(ASM))
+clean::
+	rm -rf $(start_asm)
+	rm -rf $(dir_build_asm)
+else
+ifeq ($(cleaning), $(PROC))
+clean::
+	rm -rf $(dir_build_proc)
+	rm -rf $(start_proc)
+else
+clean::
 	rm -rf $(dir_build_asm)
 	rm -rf $(dir_build_proc)
 	rm -rf $(FILE_CMD)
 	rm -rf $(start_asm)
 	rm -rf $(start_proc)
+endif
+endif
 
 
 ifeq ($(start), $(ASM))

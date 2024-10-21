@@ -70,7 +70,7 @@ void stack_dump         (struct MyStack *stack ON_DEBUG(,const char *file, int l
 void special_dump(struct MyStack *stack);
 Errors stack_destructor(struct MyStack *stack);
 Errors stack_check(const struct MyStack *stack);
-Errors stack_element(struct MyStack *stack);
+Errors stack_element(struct MyStack *stack, Stack_Elem_t *element);
 Errors stack_push(struct MyStack *stack, Stack_Elem_t element);
 Errors stack_pop(struct MyStack *stack, Stack_Elem_t *element);
 uint64_t hash (const struct MyStack *stack, int capacity);

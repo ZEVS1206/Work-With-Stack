@@ -222,7 +222,7 @@ Errors stack_check(const struct MyStack *stack)
     return NO_ERRORS;
 }
 
-Errors stack_element(struct MyStack *stack)
+Errors stack_element(struct MyStack *stack, Stack_Elem_t *element)
 {
     hash_check(stack, stack->capacity);
     Errors error = STACK_ASSERT(stack);
@@ -230,7 +230,8 @@ Errors stack_element(struct MyStack *stack)
     {
         return ERROR_OF_NULL_SIZE;
     }
-    printf("Last element in stack = %d\n", (stack->data)[stack->size - 1]);
+    *element = (stack->data)[stack->size - 1];
+    printf("Last element in stack = %d\n", *element);
     error = STACK_ASSERT(stack);
     hash_check(stack, stack->capacity);
     return error;

@@ -3,6 +3,18 @@
 
 #include "stack.h"
 
+const int TOXIC = 1985;
+const int VERSION = 1;
+
+enum Registers
+{
+    NOT_A_REGISTER = 0,
+    AX             = 1,
+    BX             = 2,
+    CX             = 3,
+    DX             = 4
+};
+
 enum Commands
 {
     CMD_PUSH    = 1,
@@ -25,10 +37,12 @@ enum Commands
     CMD_JBE     = 18, // <=
     CMD_JE      = 19, // ==
     CMD_JNE     = 20, // !=
+    CMD_POP     = 21
 };
 
 enum Errors_of_CPU
 {
+    ERROR_OF_GET_PUSH_CMD                  = 5,
     ERROR_OF_UNKNOWN_TYPE                  = 4,
     ERROR_OF_GETTING_INFORMATION_ABOUT_CMD = 3,
     ERROR_OF_UNKNOWN_CMD                   = 2,

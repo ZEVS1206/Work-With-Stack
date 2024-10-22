@@ -2,10 +2,13 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <time.h>
 #include <sys/stat.h>
 
 #include "../../Processor/include/processor.h"
 #include "assembler.h"
+
+#define SIZE 10
 
 static Errors_of_ASM destructor(struct Command *commands);
 
@@ -15,10 +18,36 @@ Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE 
     {
         return ERROR_OF_READING_FROM_FILE;
     }
+    // struct Table_labels table = {0};
+    // table.size_of_labels = SIZE;
+    // table.labels = (Label *) calloc(table.size_of_labels, sizeof(Label));
     size_t i = 0;
+    // char cmd[50] = {0};
+    // int step = 0;
     while (i < count_of_rows && fscanf(file_pointer, "%s", commands[i].command))
     {
+        // int len = strlen(cmd);
+        // if (cmd[len - 1] == ':')
+        // {
+        //     for (size_t j = 0; j < table.size_of_labels; j++)
+        //     {
+        //         if ((table.labels)[j].name == EMPTY)
+        //         {
+        //             if (strcasecmp(cmd, "NEXT:") == 0)
+        //             {
+        //                 (table.labels)[j].name = NEXT;
+        //                 (table.labels)[j].address = step;
+        //             }
+        //         }
+        //         break;
+        //     }
+        // step += 1;
+        // i++;
+        // continue;
+        // }
+
         if (strcasecmp(commands[i].command, "push") == 0
+         || strcasecmp(commands[i].command, "pop")  == 0
          || strcasecmp(commands[i].command, "jmp")  == 0
          || strcasecmp(commands[i].command, "ja")   == 0
          || strcasecmp(commands[i].command, "jae")  == 0
@@ -27,8 +56,40 @@ Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE 
          || strcasecmp(commands[i].command, "je")   == 0
          || strcasecmp(commands[i].command, "jne")  == 0)
         {
-            fscanf(file_pointer, "%d", &(commands[i].element));
+            //step += 1;
+            char s[50] = {};
+            fscanf(file_pointer, "%s", s);
+            if (isalpha(s[0]))
+            {
+                commands[i].element = TOXIC;
+                if (strcasecmp(s, "ax") == 0)
+                {
+                    commands[i].reg = AX;
+                }
+                else if (strcasecmp(s, "bx") == 0)
+                {
+                    commands[i].reg = BX;
+                }
+                else if (strcasecmp(s, "cx") == 0)
+                {
+                    commands[i].reg = CX;
+                }
+                else if (strcasecmp(s, "dx") == 0)
+                {
+                    commands[i].reg = DX;
+                }
+                else
+                {
+                    return ERROR_OF_UNKNOWN_REGISTER;
+                }
+            }
+            else
+            {
+                commands[i].element = atoi(s);
+                commands[i].reg = NOT_A_REGISTER;
+            }
         }
+        //step += 1;
         i++;
     }
     return NO_ASM_ERRORS;
@@ -46,6 +107,10 @@ Errors_of_ASM transform_commands(struct Command *commands, size_t count_of_rows)
         if (strcasecmp(commands[i].command, "push") == 0)
         {
             commands[i].transformed_command = CMD_PUSH;
+        }
+        else if (strcasecmp(commands[i].command, "pop") == 0)
+        {
+            commands[i].transformed_command = CMD_POP;
         }
         else if (strcasecmp(commands[i].command, "add") == 0)
         {
@@ -134,16 +199,37 @@ Errors_of_ASM create_file_with_commands(struct Command *commands, size_t count_o
     {
         return ERROR_OF_CREATING_OUT_FILE;
     }
+    fprintf(fp, "ZEVS_GROM\n");
+    fprintf(fp, "Vesrion %d\n", VERSION);
+    time_t my_time = time(NULL);
+    struct tm *now = localtime(&my_time);
+    char current_time[20] = {};
+    char date[20] = {};
+    char day[20] = {};
+    char month[20] = {};
+    strftime(month, sizeof(month), "%B", now);
+    strftime(day, sizeof(day), "%A", now);
+    strftime(current_time, sizeof(current_time), "%T", now);
+    strftime(date, sizeof(date), "%D", now);
+    fprintf(fp, "Date: %s\n", date);
+    fprintf(fp, "Day: %s\n", day);
+    fprintf(fp, "Month: %s\n", month);
+    fprintf(fp, "Time: %s\n", current_time);
+    fprintf(fp, "________________________________________________________________\n");
     for (size_t i = 0; i < count_of_rows; i++)
     {
         if (commands[i].transformed_command == CMD_PUSH
-         || commands[i].transformed_command == CMD_JMP
-         || commands[i].transformed_command == CMD_JA
-         || commands[i].transformed_command == CMD_JAE
-         || commands[i].transformed_command == CMD_JB
-         || commands[i].transformed_command == CMD_JBE
-         || commands[i].transformed_command == CMD_JE
-         || commands[i].transformed_command == CMD_JNE)
+         || commands[i].transformed_command == CMD_POP)
+        {
+            fprintf(fp, "%d %d %d\n", commands[i].transformed_command, commands[i].element, commands[i].reg);
+        }
+        else if (commands[i].transformed_command == CMD_JMP
+              || commands[i].transformed_command == CMD_JA
+              || commands[i].transformed_command == CMD_JAE
+              || commands[i].transformed_command == CMD_JB
+              || commands[i].transformed_command == CMD_JBE
+              || commands[i].transformed_command == CMD_JE
+              || commands[i].transformed_command == CMD_JNE)
         {
             fprintf(fp, "%d %d\n", commands[i].transformed_command, commands[i].element);
         }

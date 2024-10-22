@@ -1,6 +1,14 @@
-push 11
-push 11
+push 0
+pop ax
+push ax
+push ax
 mul
 out
-ja 0
+push ax
+push 1
+add
+pop ax
+push ax
+push 10
+jb 5
 hlt

@@ -9,6 +9,7 @@
 #include "processor.h"
 
 
+
 Errors_of_CPU create_commands()
 {
     FILE *fp = fopen("Assembler/source/cpu_commands.txt", "r");
@@ -20,13 +21,30 @@ Errors_of_CPU create_commands()
         return ERROR_OF_GETTING_INFORMATION_ABOUT_CMD;
     }
 
-    size_t size_of_file = statistics.st_size;
+    size_t size_of_file = (uint64_t)statistics.st_size;
+    size_t count = 0;
+    int rows = 0;
+    char c = '\0';
+    while (rows < 7)
+    {
+        c = getc(fp);
+        if (c == '\n')
+        {
+            rows++;
+        }
+        count++;
+    }
+    size_of_file -= count;
     char *buffer = (char *) calloc(size_of_file, sizeof(char));
     if (buffer == NULL)
     {
         return ERROR_OF_GETTING_INFORMATION_ABOUT_CMD;
     }
     size_t result_of_reading = fread(buffer, sizeof(char), size_of_file, fp);
+    if (result_of_reading != size_of_file)
+    {
+        return ERROR_OF_GETTING_INFORMATION_ABOUT_CMD;
+    }
     size_t size = 0;
     for (size_t i = 0; i < size_of_file; i++)
     {
@@ -64,6 +82,9 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
 {
     spu->stack = (struct MyStack *) calloc(1, sizeof(struct MyStack));
     STACK_CTOR(spu->stack, 10);
+    spu->registers = (int *) calloc(4, sizeof(int));
+    spu->size_of_registers = 4;
+    (spu->registers)[0] = 1;
     Errors error = NO_ERRORS;
     size_t i = 0;
     while (i < spu->size_of_commands)
@@ -75,8 +96,51 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             {
                 i++;
                 Stack_Elem_t elem = (spu->commands)[i];
-                error = stack_push(spu->stack, elem);
-                //special_dump(&stack);
+                i++;
+                Registers reg = (Registers)(spu->commands)[i];
+                if (reg == NOT_A_REGISTER)
+                {
+                    if (elem == TOXIC)
+                    {
+                        return ERROR_OF_GET_PUSH_CMD;
+                    }
+                    error = stack_push(spu->stack, elem);
+                }
+                else
+                {
+                    if (elem != TOXIC)
+                    {
+                        return ERROR_OF_GET_PUSH_CMD;
+                    }
+                    Stack_Elem_t operand = (spu->registers)[reg - 1];
+                    error = stack_push(spu->stack, operand);
+                }
+                break;
+            }
+            case CMD_POP:
+            {
+                i++;
+                Stack_Elem_t elem = (spu->commands)[i];
+                i++;
+                Registers reg = (Registers)(spu->commands)[i];
+                if (reg == NOT_A_REGISTER)
+                {
+                    if (elem == TOXIC)
+                    {
+                        return ERROR_OF_GET_PUSH_CMD;
+                    }
+                    error = stack_push(spu->stack, elem);
+                }
+                else
+                {
+                    if (elem != TOXIC)
+                    {
+                        return ERROR_OF_GET_PUSH_CMD;
+                    }
+                    Stack_Elem_t operand = 0;
+                    error = stack_pop(spu->stack, &operand);
+                    (spu->registers)[reg - 1] = operand;
+                }
                 break;
             }
             case CMD_ADD:
@@ -191,7 +255,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             {
                 i++;
                 int position = (spu->commands[i]);
-                i = position - 1;
+                i = (size_t)position;
                 break;
             }
             case CMD_JA:
@@ -205,8 +269,24 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 }
                 else
                 {
-                    int position = (spu->commands[i]);
-                    i = position - 1;
+                    int position = (spu->commands)[i];
+                    i = (size_t)position;
+                    break;
+                }
+            }
+            case CMD_JB:
+            {
+                i++;
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                if ((spu->registers)[0] < operand)
+                {
+                    int position = (spu->commands)[i];
+                    i = (size_t)position;
+                    break;
+                }
+                else
+                {
                     break;
                 }
             }
@@ -223,6 +303,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
         i++;
     }
     free(spu->commands);
+    free(spu->registers);
     error = stack_destructor(spu->stack);
     free(spu->stack);
     return NO_CPU_ERRORS;

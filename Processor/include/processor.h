@@ -37,7 +37,8 @@ enum Commands
     CMD_JBE     = 18, // <=
     CMD_JE      = 19, // ==
     CMD_JNE     = 20, // !=
-    CMD_POP     = 21
+    CMD_POP     = 21,
+    CMD_LABEL   = 22
 };
 
 enum Errors_of_CPU

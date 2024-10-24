@@ -1,9 +1,9 @@
 ZEVS_GROM
 Vesrion 1
-Date: 10/22/24
-Day: Tuesday
+Date: 10/24/24
+Day: Thursday
 Month: October
-Time: 23:46:18
+Time: 20:10:24
 ________________________________________________________________
 1 0 0
 21 1985 1

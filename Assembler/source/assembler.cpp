@@ -10,54 +10,49 @@
 
 #define SIZE 10
 
+static const int num_of_labels = 10;
+
+//array of structures
 static Errors_of_ASM destructor(struct Command *commands);
 
-Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE *file_pointer)
+Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE *file_pointer, struct Table_labels *table)
 {
     if (commands == NULL || file_pointer == NULL)
     {
         return ERROR_OF_READING_FROM_FILE;
     }
-    // struct Table_labels table = {0};
-    // table.size_of_labels = SIZE;
-    // table.labels = (Label *) calloc(table.size_of_labels, sizeof(Label));
     size_t i = 0;
-    // char cmd[50] = {0};
-    // int step = 0;
+    int step = 0;
     while (i < count_of_rows && fscanf(file_pointer, "%s", commands[i].command))
     {
-        // int len = strlen(cmd);
-        // if (cmd[len - 1] == ':')
-        // {
-        //     for (size_t j = 0; j < table.size_of_labels; j++)
-        //     {
-        //         if ((table.labels)[j].name == EMPTY)
-        //         {
-        //             if (strcasecmp(cmd, "NEXT:") == 0)
-        //             {
-        //                 (table.labels)[j].name = NEXT;
-        //                 (table.labels)[j].address = step;
-        //             }
-        //         }
-        //         break;
-        //     }
-        // step += 1;
-        // i++;
-        // continue;
-        // }
+        size_t len = strlen(commands[i].command);
+        //parse_word()
+        //parse_label()
+        if (commands[i].command[len - 1] == ':')
+        {
+            step += 1;
+            for (size_t j = 0; j < table->size_of_labels; j++)
+            {
+                if ((table->labels)[j].name == EMPTY)
+                {
+                    if (strcasecmp(commands[i].command, "NEXT:") == 0)
+                    {
+                        (table->labels)[j].name = NEXT;
+                        (table->labels)[j].address = step;
+                    }
+                }
+                break;
+            }
+            char str[6] = "label";
+            memcpy(commands[i].command, str, 6);
+        }
 
         if (strcasecmp(commands[i].command, "push") == 0
-         || strcasecmp(commands[i].command, "pop")  == 0
-         || strcasecmp(commands[i].command, "jmp")  == 0
-         || strcasecmp(commands[i].command, "ja")   == 0
-         || strcasecmp(commands[i].command, "jae")  == 0
-         || strcasecmp(commands[i].command, "jb")   == 0
-         || strcasecmp(commands[i].command, "jbe")  == 0
-         || strcasecmp(commands[i].command, "je")   == 0
-         || strcasecmp(commands[i].command, "jne")  == 0)
+         || strcasecmp(commands[i].command, "pop")  == 0)
         {
-            //step += 1;
-            char s[50] = {};
+            //parse_push_pop_cmd()
+            step += 1;
+            char s[50] = {0};
             fscanf(file_pointer, "%s", s);
             if (isalpha(s[0]))
             {
@@ -87,6 +82,37 @@ Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE 
             {
                 commands[i].element = atoi(s);
                 commands[i].reg = NOT_A_REGISTER;
+            }
+        }
+        else if (strcasecmp(commands[i].command, "jmp")  == 0
+                || strcasecmp(commands[i].command, "ja")   == 0
+                || strcasecmp(commands[i].command, "jae")  == 0
+                || strcasecmp(commands[i].command, "jb")   == 0
+                || strcasecmp(commands[i].command, "jbe")  == 0
+                || strcasecmp(commands[i].command, "je")   == 0
+                || strcasecmp(commands[i].command, "jne")  == 0)
+        {
+            //parse_jump_cmd()
+            step += 1;
+            char str[50] = {0};
+            fscanf(file_pointer, "%s", str);
+            commands[i].reg = NOT_A_REGISTER;
+            Label_name label = EMPTY;
+            if (strcasecmp(str, "NEXT:") == 0)
+            {
+                label = NEXT;
+            }
+            else if (strcasecmp(str, "SKIP:") == 0)
+            {
+                label = SKIP;
+            }
+            for (size_t k = 0; k < table->size_of_labels; k++)
+            {
+                if ((table->labels)[k].name == label)
+                {
+                    commands[i].element = (table->labels)[k].address;
+                    break;
+                }
             }
         }
         //step += 1;
@@ -184,6 +210,10 @@ Errors_of_ASM transform_commands(struct Command *commands, size_t count_of_rows)
         {
             commands[i].transformed_command = CMD_HLT;
         }
+        else if (strcasecmp(commands[i].command, "label") == 0)
+        {
+            commands[i].transformed_command = CMD_LABEL;
+        }
         else
         {
             commands[i].transformed_command = CMD_UNKNOWN;
@@ -218,6 +248,10 @@ Errors_of_ASM create_file_with_commands(struct Command *commands, size_t count_o
     fprintf(fp, "________________________________________________________________\n");
     for (size_t i = 0; i < count_of_rows; i++)
     {
+        if (commands[i].transformed_command == CMD_LABEL)
+        {
+            continue;
+        }
         if (commands[i].transformed_command == CMD_PUSH
          || commands[i].transformed_command == CMD_POP)
         {
@@ -247,6 +281,7 @@ int main()
 {
     printf("Assembler started!\n");
     FILE *fp = fopen("Assembler/source/text_cpu_commands.txt", "rb");
+    // get_count_of_rows()
     int c = 0;
     size_t count_of_rows = 0;
     while ((c = getc(fp)) != EOF)
@@ -257,7 +292,13 @@ int main()
         }
     }
     rewind(fp);
+
+    // c...tor
     struct Command *commands = (Command *) calloc(count_of_rows, sizeof(Command));
+    struct Table_labels table = {0};
+    table.size_of_labels = (size_t)num_of_labels;
+    table.labels = (Label *) calloc(table.size_of_labels, sizeof(Label));
+
     Errors_of_ASM error = NO_ASM_ERRORS;
     if (commands == NULL)
     {
@@ -268,7 +309,7 @@ int main()
         fprintf(stderr, "error=%d\n", error);
         return 0;
     }
-    error = get_commands(commands, count_of_rows, fp);
+    error = get_commands(commands, count_of_rows, fp, &table);
     if (error != NO_ASM_ERRORS)
     {
         fprintf(stderr, "error=%d\n", error);

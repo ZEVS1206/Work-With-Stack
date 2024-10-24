@@ -14,7 +14,7 @@ enum Errors_of_ASM
     ERROR_OF_CREATE_ARRAY      = 6,
     ERROR_OF_UNKNOWN_REGISTER  = 7
 };
-
+//fix
 enum Label_name
 {
     EMPTY = 0,
@@ -42,7 +42,14 @@ struct Table_labels
     size_t size_of_labels;
 };
 
-Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE *file_pointer);
+struct ASM
+{
+    struct Command *commands;
+    size_t count_of_rows;
+    struct Table_labels *table;
+};
+
+Errors_of_ASM get_commands(struct Command *commands, size_t count_of_rows, FILE *file_pointer, struct Table_labels *table);
 Errors_of_ASM transform_commands(struct Command *commands, size_t count_of_rows);
 Errors_of_ASM create_file_with_commands(struct Command *commands, size_t count_of_rows);
 

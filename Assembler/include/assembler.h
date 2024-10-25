@@ -13,7 +13,8 @@ enum Errors_of_ASM
     ERROR_OF_DESTRUCTOR        = 5,
     ERROR_OF_CREATE_ARRAY      = 6,
     ERROR_OF_UNKNOWN_REGISTER  = 7,
-    ERROR_OF_CONSTRUCTOR       = 8
+    ERROR_OF_CONSTRUCTOR       = 8,
+    ERROR_OF_PARSE_WORD        = 9
 };
 //fix
 enum Label_name
@@ -29,6 +30,12 @@ struct Command
     Commands transformed_command;
     int element;
     Registers reg;
+};
+
+struct CMD
+{
+    char name[50];
+    Commands transformed_name;
 };
 
 struct Label
@@ -48,10 +55,11 @@ struct ASM
     struct Command *commands;
     size_t count_of_rows;
     struct Table_labels *table;
+    FILE *file_pointer;
 };
 
-Errors_of_ASM get_commands(struct ASM *Asm, FILE *file_pointer);
-Errors_of_ASM transform_commands(struct ASM *Asm);
+Errors_of_ASM get_commands(struct ASM *Asm);
+Errors_of_ASM transform_commands(struct ASM *Asm, struct CMD *all_commands, size_t size_of_all_commands);
 Errors_of_ASM create_file_with_commands(struct ASM *Asm);
 
 #endif

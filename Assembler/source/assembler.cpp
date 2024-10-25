@@ -12,14 +12,13 @@
 
 static const int num_of_labels = 10;
 
-//array of structures
 static Errors_of_ASM constructor(struct ASM *Asm);
 static Errors_of_ASM destructor(struct ASM *Asm);
 static Errors_of_ASM get_count_of_rows(struct ASM *Asm);
 static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t index, struct Labels *all_labels, size_t size_of_all_labels);
 static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index, struct Labels *all_labels, size_t size_of_all_labels);
 static Errors_of_ASM parse_push_pop_cmd(struct ASM *Asm, size_t index);
-static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index, struct Labels *all_labels, size_t size_of_all_labels);
+static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index);
 
 
 static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t index, struct Labels *all_labels, size_t size_of_all_labels)
@@ -58,7 +57,7 @@ static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t i
             || strcasecmp((Asm->commands)[index].command, "jne")  == 0)
     {
         *step += 1;
-        error = parse_jump_cmds(Asm, index, all_labels, size_of_all_labels);
+        error = parse_jump_cmds(Asm, index);
         if (error != NO_ASM_ERRORS)
         {
             return error;
@@ -75,12 +74,13 @@ static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index, struc
     }
     for (size_t j = 0; j < (Asm->table)->size_of_labels; j++)
     {
-        if (((Asm->table)->labels)[j].name == EMPTY)
+        if (strcasecmp(((Asm->table)->labels)[j].name, "") == 0)
         {
             for (size_t k = 0; k < size_of_all_labels; k++)
             {
                 if (strcasecmp((Asm->commands)[index].command, (all_labels[k]).name) == 0)
                 {
+                    memcpy(((Asm->table)->labels)[j].name, (all_labels[k]).name, strlen((all_labels[k]).name));
                     ((Asm->table)->labels)[j].address = *step;
                     break;
                 }
@@ -133,7 +133,7 @@ static Errors_of_ASM parse_push_pop_cmd(struct ASM *Asm, size_t index)
     return NO_ASM_ERRORS;
 }
 
-static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index, struct Labels *all_labels, size_t size_of_all_labels)
+static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index)
 {
     if (Asm == NULL || (Asm->file_pointer) == NULL)
     {
@@ -144,13 +144,10 @@ static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index, struct Label
     (Asm->commands)[index].reg = NOT_A_REGISTER;
     for (size_t k = 0; k < (Asm->table)->size_of_labels; k++)
     {
-        for (size_t j = 0; j < size_of_all_labels; j++)
+        if (strcasecmp(str, ((Asm->table)->labels)[k].name) == 0)
         {
-            if (strcasecmp(str, (all_labels[j]).name) == 0)
-            {
-                (Asm->commands)[index].element = ((Asm->table)->labels)[k].address;
-                break;
-            }
+            (Asm->commands)[index].element = ((Asm->table)->labels)[k].address;
+            break;
         }
     }
     return NO_ASM_ERRORS;
@@ -277,6 +274,10 @@ static Errors_of_ASM constructor(struct ASM *Asm)
     if ((Asm->table)->labels == NULL)
     {
         return ERROR_OF_CONSTRUCTOR;
+    }
+    for (size_t i = 0; i < (Asm->table)->size_of_labels; i++)
+    {
+        ((Asm->table)->labels)[i].address = -1;
     }
     return NO_ASM_ERRORS;
 }

@@ -40,7 +40,7 @@ struct CMD
 
 struct Label
 {
-    Label_name name;
+    char name[50];
     int address;
 };
 

@@ -44,6 +44,11 @@ struct Label
     int address;
 };
 
+struct Labels
+{
+    char name[50];
+};
+
 struct Table_labels
 {
     struct Label *labels;
@@ -58,7 +63,7 @@ struct ASM
     FILE *file_pointer;
 };
 
-Errors_of_ASM get_commands(struct ASM *Asm);
+Errors_of_ASM get_commands(struct ASM *Asm, struct Labels *all_labels, size_t size_of_all_labels);
 Errors_of_ASM transform_commands(struct ASM *Asm, struct CMD *all_commands, size_t size_of_all_commands);
 Errors_of_ASM create_file_with_commands(struct ASM *Asm);
 

@@ -16,13 +16,13 @@ static const int num_of_labels = 10;
 static Errors_of_ASM constructor(struct ASM *Asm);
 static Errors_of_ASM destructor(struct ASM *Asm);
 static Errors_of_ASM get_count_of_rows(struct ASM *Asm);
-static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t index);
-static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index);
+static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t index, struct Labels *all_labels, size_t size_of_all_labels);
+static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index, struct Labels *all_labels, size_t size_of_all_labels);
 static Errors_of_ASM parse_push_pop_cmd(struct ASM *Asm, size_t index);
-static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index);
+static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index, struct Labels *all_labels, size_t size_of_all_labels);
 
 
-static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t index)
+static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t index, struct Labels *all_labels, size_t size_of_all_labels)
 {
     Errors_of_ASM error = NO_ASM_ERRORS;
     if (Asm == NULL)
@@ -32,7 +32,7 @@ static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t i
     if ((Asm->commands)[index].command[len - 1] == ':')
     {
         *step += 1;
-        error = parse_label(Asm, step, index);
+        error = parse_label(Asm, step, index, all_labels, size_of_all_labels);
         if (error != NO_ASM_ERRORS)
         {
             return error;
@@ -58,7 +58,7 @@ static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t i
             || strcasecmp((Asm->commands)[index].command, "jne")  == 0)
     {
         *step += 1;
-        error = parse_jump_cmds(Asm, index);
+        error = parse_jump_cmds(Asm, index, all_labels, size_of_all_labels);
         if (error != NO_ASM_ERRORS)
         {
             return error;
@@ -67,7 +67,7 @@ static Errors_of_ASM parse_word(struct ASM *Asm, int *step, size_t len, size_t i
     return error;
 }
 
-static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index)
+static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index, struct Labels *all_labels, size_t size_of_all_labels)
 {
     if (Asm == NULL)
     {
@@ -77,10 +77,13 @@ static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index)
     {
         if (((Asm->table)->labels)[j].name == EMPTY)
         {
-            if (strcasecmp((Asm->commands)[index].command, "NEXT:") == 0)
+            for (size_t k = 0; k < size_of_all_labels; k++)
             {
-                ((Asm->table)->labels)[j].name = NEXT;
-                ((Asm->table)->labels)[j].address = *step;
+                if (strcasecmp((Asm->commands)[index].command, (all_labels[k]).name) == 0)
+                {
+                    ((Asm->table)->labels)[j].address = *step;
+                    break;
+                }
             }
         }
         break;
@@ -130,7 +133,7 @@ static Errors_of_ASM parse_push_pop_cmd(struct ASM *Asm, size_t index)
     return NO_ASM_ERRORS;
 }
 
-static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index)
+static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index, struct Labels *all_labels, size_t size_of_all_labels)
 {
     if (Asm == NULL || (Asm->file_pointer) == NULL)
     {
@@ -139,27 +142,21 @@ static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index)
     char str[50] = {0};
     fscanf(Asm->file_pointer, "%s", str);
     (Asm->commands)[index].reg = NOT_A_REGISTER;
-    Label_name label = EMPTY;
-    if (strcasecmp(str, "NEXT:") == 0)
-    {
-        label = NEXT;
-    }
-    else if (strcasecmp(str, "SKIP:") == 0)
-    {
-        label = SKIP;
-    }
     for (size_t k = 0; k < (Asm->table)->size_of_labels; k++)
     {
-        if (((Asm->table)->labels)[k].name == label)
+        for (size_t j = 0; j < size_of_all_labels; j++)
         {
-            (Asm->commands)[index].element = ((Asm->table)->labels)[k].address;
-            break;
+            if (strcasecmp(str, (all_labels[j]).name) == 0)
+            {
+                (Asm->commands)[index].element = ((Asm->table)->labels)[k].address;
+                break;
+            }
         }
     }
     return NO_ASM_ERRORS;
 }
 
-Errors_of_ASM get_commands(struct ASM *Asm)
+Errors_of_ASM get_commands(struct ASM *Asm, struct Labels *all_labels, size_t size_of_all_labels)
 {
     if (Asm == NULL)
     {
@@ -171,7 +168,7 @@ Errors_of_ASM get_commands(struct ASM *Asm)
     while (i < (Asm->count_of_rows) && fscanf(Asm->file_pointer, "%s", (Asm->commands)[i].command))
     {
         size_t len = strlen((Asm->commands)[i].command);
-        error = parse_word(Asm, &step, len, i);
+        error = parse_word(Asm, &step, len, i, all_labels, size_of_all_labels);
         i++;
     }
     return error;
@@ -331,6 +328,10 @@ int main()
                                  {"hlt", CMD_HLT}};
     size_t size_of_all_commands = sizeof(all_commands) / sizeof(CMD);
 
+    struct Labels all_labels[] = {{"NEXT:"},
+                                  {"SKIP:"}};
+    size_t size_of_all_labels = sizeof(all_labels) / sizeof(Labels);
+
 
     struct ASM Asm = {0};
     (Asm.file_pointer) = fopen("Assembler/source/text_cpu_commands.txt", "rb");
@@ -348,7 +349,7 @@ int main()
         return 0;
     }
 
-    error = get_commands(&Asm);
+    error = get_commands(&Asm, all_labels, size_of_all_labels);
     if (error != NO_ASM_ERRORS)
     {
         fprintf(stderr, "error=%d\n", error);

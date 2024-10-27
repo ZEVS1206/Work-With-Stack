@@ -1,0 +1,4 @@
+push 3.14
+sin
+out
+hlt

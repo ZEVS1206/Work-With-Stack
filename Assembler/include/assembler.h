@@ -28,7 +28,7 @@ struct Command
 {
     char command[50];
     Commands transformed_command;
-    int element;
+    double element;
     Registers reg;
 };
 

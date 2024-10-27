@@ -24,7 +24,7 @@ Errors_of_CPU create_commands()
     size_t size_of_file = (uint64_t)statistics.st_size;
     size_t count = 0;
     int rows = 0;
-    char c = '\0';
+    int c = 0;
     while (rows < 7)
     {
         c = getc(fp);
@@ -59,15 +59,30 @@ Errors_of_CPU create_commands()
     size_t i = 0;
     while (i < size_of_file)
     {
+        bool is_cmd = true;
         char tmp[10] = {0};
         int k = 0;
         while (!isspace(buffer[i]))
         {
             tmp[k++] = buffer[i];
+            if (buffer[i] == '.')
+            {
+                is_cmd = false;
+            }
             i++;
         }
         tmp[k] = '\0';
-        (spu.commands)[j++] = atoi(tmp);
+        if (is_cmd)
+        {
+            (spu.commands)[j] = atoi(tmp);
+        }
+        else
+        {
+            char *end = NULL;
+            double element = strtod(tmp, &end);
+            (spu.commands)[j] = (element * pow(10, ACCURANCY));
+        }
+        j++;
         i++;
     }
     Errors_of_CPU error = NO_CPU_ERRORS;
@@ -87,15 +102,20 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
     (spu->registers)[0] = 1;
     Errors error = NO_ERRORS;
     size_t i = 0;
+    bool flag = false;
     while (i < spu->size_of_commands)
     {
+        if (flag)
+        {
+            break;
+        }
         Commands cmd = (Commands)(spu->commands)[i];
         switch (cmd)
         {
             case CMD_PUSH:
             {
                 i++;
-                Stack_Elem_t elem = (spu->commands)[i];
+                Stack_Elem_t elem = ((spu->commands)[i] / pow(10, ACCURANCY));;
                 i++;
                 Registers reg = (Registers)(spu->commands)[i];
                 if (reg == NOT_A_REGISTER)
@@ -187,8 +207,8 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             }
             case CMD_DIV:
             {
-                int first_operand = 0;
-                int second_operand = 0;
+                Stack_Elem_t first_operand = 0;
+                Stack_Elem_t second_operand = 0;
                 error = stack_pop(spu->stack, &second_operand);
                 error = stack_pop(spu->stack, &first_operand);
                 error = stack_push(spu->stack, (first_operand / second_operand));
@@ -226,7 +246,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 }
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                error = stack_push(spu->stack, ceil(sin(operand)));
+                error = stack_push(spu->stack, (sin(operand)));
                 break;
             }
             case CMD_COS:
@@ -237,7 +257,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 }
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                error = stack_push(spu->stack, ceil(cos(operand)));
+                error = stack_push(spu->stack, (cos(operand)));
                 break;
             }
             case CMD_SQRT:
@@ -248,7 +268,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 }
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                error = stack_push(spu->stack, ceil(sqrt(operand)));
+                error = stack_push(spu->stack, (sqrt(operand)));
                 break;
             }
             case CMD_JMP:
@@ -262,15 +282,15 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             {
                 i++;
                 Stack_Elem_t operand = 0;
-                error = stack_element(spu->stack, &operand);
-                if (operand > 100)
+                error = stack_pop(spu->stack, &operand);
+                if ((spu->registers)[0] > operand)
                 {
+                    int position = (spu->commands)[i];
+                    i = (size_t)position;
                     break;
                 }
                 else
                 {
-                    int position = (spu->commands)[i];
-                    i = (size_t)position;
                     break;
                 }
             }
@@ -290,8 +310,77 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                     break;
                 }
             }
-            case CMD_HLT:
+            case CMD_JAE:
+            {
+                i++;
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                if ((spu->registers)[0] >= operand)
+                {
+                    int position = (spu->commands)[i];
+                    i = (size_t)position;
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            case CMD_JBE:
+            {
+                i++;
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                if ((spu->registers)[0] <= operand)
+                {
+                    int position = (spu->commands)[i];
+                    i = (size_t)position;
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            case CMD_JE:
+            {
+                i++;
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                if ((spu->registers)[0] == operand)
+                {
+                    int position = (spu->commands)[i];
+                    i = (size_t)position;
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            case CMD_JNE:
+            {
+                i++;
+                Stack_Elem_t operand = 0;
+                error = stack_pop(spu->stack, &operand);
+                if ((spu->registers)[0] != operand)
+                {
+                    int position = (spu->commands)[i];
+                    i = (size_t)position;
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            case CMD_LABEL:
                 break;
+            case CMD_HLT:
+            {
+                flag = true;
+                break;
+            }
             case CMD_UNKNOWN:
                 return ERROR_OF_UNKNOWN_CMD;
                 break;

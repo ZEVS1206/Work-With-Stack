@@ -127,7 +127,9 @@ static Errors_of_ASM parse_push_pop_cmd(struct ASM *Asm, size_t index)
     }
     else
     {
-        (Asm->commands)[index].element = atoi(s);
+        char *end = NULL;
+        (Asm->commands)[index].element = strtod(s, &end);
+        //(Asm->commands)[index].element = atoi(s);
         (Asm->commands)[index].reg = NOT_A_REGISTER;
     }
     return NO_ASM_ERRORS;
@@ -146,7 +148,7 @@ static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index)
     {
         if (strcasecmp(str, ((Asm->table)->labels)[k].name) == 0)
         {
-            (Asm->commands)[index].element = ((Asm->table)->labels)[k].address;
+            (Asm->commands)[index].element = (double)((Asm->table)->labels)[k].address;
             break;
         }
     }
@@ -232,7 +234,7 @@ Errors_of_ASM create_file_with_commands(struct ASM *Asm)
         if ((Asm->commands)[i].transformed_command == CMD_PUSH
          || (Asm->commands)[i].transformed_command == CMD_POP)
         {
-            fprintf(fp, "%d %d %d\n", (Asm->commands)[i].transformed_command, (Asm->commands)[i].element, (Asm->commands)[i].reg);
+            fprintf(fp, "%d %.*lf %d\n", (Asm->commands)[i].transformed_command, ACCURANCY, (Asm->commands)[i].element, (Asm->commands)[i].reg);
         }
         else if ((Asm->commands)[i].transformed_command == CMD_JMP
               || (Asm->commands)[i].transformed_command == CMD_JA
@@ -242,7 +244,7 @@ Errors_of_ASM create_file_with_commands(struct ASM *Asm)
               || (Asm->commands)[i].transformed_command == CMD_JE
               || (Asm->commands)[i].transformed_command == CMD_JNE)
         {
-            fprintf(fp, "%d %d\n", (Asm->commands)[i].transformed_command, (Asm->commands)[i].element);
+            fprintf(fp, "%d %d\n", (Asm->commands)[i].transformed_command, (int)(Asm->commands)[i].element);
         }
         else
         {
@@ -335,7 +337,7 @@ int main()
 
 
     struct ASM Asm = {0};
-    (Asm.file_pointer) = fopen("Assembler/source/text_cpu_commands.txt", "rb");
+    (Asm.file_pointer) = fopen("Assembler/source/test_commands.txt", "rb");
     Errors_of_ASM error = get_count_of_rows(&Asm);
     if (error != NO_ASM_ERRORS)
     {
@@ -390,6 +392,7 @@ static Errors_of_ASM destructor(struct ASM *Asm)
     {
         return ERROR_OF_DESTRUCTOR;
     }
+    fclose(Asm->file_pointer);
     Asm->count_of_rows = 0;
     free(Asm->commands);
     (Asm->table)->size_of_labels = 0;

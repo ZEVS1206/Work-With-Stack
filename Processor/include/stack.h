@@ -5,8 +5,8 @@
 #include <stdint.h>
 const int COEFFICIENT = 2;
 
-typedef int Stack_Elem_t;
-typedef int Stack_Canary_t;
+typedef double Stack_Elem_t;
+typedef double Stack_Canary_t;
 
 //#define DEBUG
 //#define FULL_DEBUG

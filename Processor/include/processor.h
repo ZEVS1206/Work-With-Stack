@@ -5,6 +5,7 @@
 
 const int TOXIC = 1985;
 const int VERSION = 1;
+const int ACCURANCY = 2;
 
 enum Registers
 {

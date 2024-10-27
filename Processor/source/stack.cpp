@@ -231,7 +231,7 @@ Errors stack_element(struct MyStack *stack, Stack_Elem_t *element)
         return ERROR_OF_NULL_SIZE;
     }
     *element = (stack->data)[stack->size - 1];
-    printf("Last element in stack = %d\n", *element);
+    printf("Last element in stack = %lf\n", *element);
     error = STACK_ASSERT(stack);
     hash_check(stack, stack->capacity);
     return error;
@@ -281,7 +281,7 @@ Errors stack_pop(struct MyStack *stack, Stack_Elem_t *element)
     }
     Errors error = STACK_ASSERT(stack);
     *element = (stack->data)[stack->size - 1];
-    LESS_DEBUG(printf("last_element=%d\n\n", *element);)
+    LESS_DEBUG(printf("last_element=%lf\n\n", *element);)
     (stack->data)[stack->size - 1] = 0;
     (stack->size)--;
     new_hash(stack);
@@ -321,15 +321,15 @@ void stack_dump(struct MyStack *stack ON_DEBUG(,const char *file, int line))
         LESS_DEBUG(printf("Size value: %d\n", stack->size);)
         LESS_DEBUG(printf("Hash result: %lu\n", stack->hash_result);)
         LESS_DEBUG(printf("Capacity value: %d\n", stack->capacity);)
-        LESS_DEBUG(printf("LEFT_CANARY: %d\n", *(stack->data - 1));)
-        LESS_DEBUG(printf("RIGHT_CANARY: %d\n", *(stack->data + stack->capacity));)
+        LESS_DEBUG(printf("LEFT_CANARY: %lf\n", *(stack->data - 1));)
+        LESS_DEBUG(printf("RIGHT_CANARY: %lf\n", *(stack->data + stack->capacity));)
         if (stack->data != NULL)
         {
             LESS_DEBUG(printf("Stack:\n");)
             LESS_DEBUG(stack->data -= 1;)
             LESS_DEBUG(for (int i = 0; i < stack->capacity + 2; i++))
             LESS_DEBUG({)
-                LESS_DEBUG(printf("%d ", (stack->data)[i]);)
+                LESS_DEBUG(printf("%lf ", (stack->data)[i]);)
             LESS_DEBUG(})
             LESS_DEBUG(stack->data += 1;)
         }
@@ -349,7 +349,7 @@ void special_dump(struct MyStack *stack)
         printf("Stack:\n");
         for (int i = 0; i < stack->size; i++)
         {
-            printf("%d ", (stack->data)[i]);
+            printf("%lf ", (stack->data)[i]);
         }
         printf("\n\n");
         }

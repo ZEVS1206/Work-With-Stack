@@ -145,15 +145,15 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 Registers reg = (Registers)(spu->commands)[i];
                 if (reg == NOT_A_REGISTER)
                 {
-                    if (elem == TOXIC)
+                    if (elem == (TOXIC * pow(10, ACCURANCY)))
                     {
                         return ERROR_OF_GET_PUSH_CMD;
                     }
-                    error = stack_push(spu->stack, elem);
+                    error = stack_pop(spu->stack, &elem);
                 }
                 else
                 {
-                    if (elem != TOXIC)
+                    if (elem != (TOXIC * pow(10, ACCURANCY)))
                     {
                         return ERROR_OF_GET_PUSH_CMD;
                     }

@@ -16,13 +16,6 @@ enum Errors_of_ASM
     ERROR_OF_CONSTRUCTOR       = 8,
     ERROR_OF_PARSE_WORD        = 9
 };
-//fix
-enum Label_name
-{
-    EMPTY = 0,
-    NEXT  = 1,
-    SKIP  = 2
-};
 
 struct Command
 {

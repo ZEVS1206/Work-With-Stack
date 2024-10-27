@@ -337,7 +337,7 @@ int main()
 
 
     struct ASM Asm = {0};
-    (Asm.file_pointer) = fopen("Assembler/source/test_commands.txt", "rb");
+    (Asm.file_pointer) = fopen("Assembler/source/text_cpu_commands.txt", "rb");
     Errors_of_ASM error = get_count_of_rows(&Asm);
     if (error != NO_ASM_ERRORS)
     {

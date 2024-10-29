@@ -23,6 +23,7 @@ struct Command
     Commands transformed_command;
     double element;
     Registers reg;
+    int ram_address;
 };
 
 struct CMD

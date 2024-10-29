@@ -6,6 +6,7 @@
 const int TOXIC = 1985;
 const int VERSION = 1;
 const int ACCURANCY = 2;
+const long long int RAM_SIZE  = 100;
 
 enum Registers
 {
@@ -39,11 +40,13 @@ enum Commands
     CMD_JE      = 19, // ==
     CMD_JNE     = 20, // !=
     CMD_POP     = 21,
-    CMD_LABEL   = 22
+    CMD_LABEL   = 22,
+    CMD_PRINT   = 23
 };
 
 enum Errors_of_CPU
 {
+    ERROR_OF_GET_POP_CMD                   = 6,
     ERROR_OF_GET_PUSH_CMD                  = 5,
     ERROR_OF_UNKNOWN_TYPE                  = 4,
     ERROR_OF_GETTING_INFORMATION_ABOUT_CMD = 3,
@@ -60,6 +63,7 @@ struct MySPU
     MyStack *stack;
     int *registers;
     size_t size_of_registers;
+    int *ram;
 };
 
 Errors_of_CPU create_commands();

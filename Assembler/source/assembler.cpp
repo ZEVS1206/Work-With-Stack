@@ -125,6 +125,14 @@ static Errors_of_ASM parse_push_pop_cmd(struct ASM *Asm, size_t index)
             return ERROR_OF_UNKNOWN_REGISTER;
         }
     }
+    else if (s[0] == '[')
+    {
+        (Asm->commands)[index].element = TOXIC;
+        (Asm->commands)[index].reg = NOT_A_REGISTER;
+        char address[50] = {0};
+        memcpy(address, s + 1, strlen(s));
+        (Asm->commands)[index].ram_address = atoi(address);
+    }
     else
     {
         char *end = NULL;
@@ -234,7 +242,7 @@ Errors_of_ASM create_file_with_commands(struct ASM *Asm)
         if ((Asm->commands)[i].transformed_command == CMD_PUSH
          || (Asm->commands)[i].transformed_command == CMD_POP)
         {
-            fprintf(fp, "%d %.*lf %d\n", (Asm->commands)[i].transformed_command, ACCURANCY, (Asm->commands)[i].element, (Asm->commands)[i].reg);
+            fprintf(fp, "%d %.*lf %d %d\n", (Asm->commands)[i].transformed_command, ACCURANCY, (Asm->commands)[i].element, (Asm->commands)[i].reg, (Asm->commands)[i].ram_address);
         }
         else if ((Asm->commands)[i].transformed_command == CMD_JMP
               || (Asm->commands)[i].transformed_command == CMD_JA
@@ -265,6 +273,10 @@ static Errors_of_ASM constructor(struct ASM *Asm)
     if (Asm->commands == NULL)
     {
         return ERROR_OF_CONSTRUCTOR;
+    }
+    for (size_t i = 0; i < (Asm->count_of_rows); i++)
+    {
+        (Asm->commands)[i].ram_address = -1;
     }
     Asm->table = (Table_labels *) calloc(1, sizeof(Table_labels));
     if (Asm->table == NULL)
@@ -328,6 +340,7 @@ int main()
                                  {"je",   CMD_JE},
                                  {"jne",  CMD_JNE},
                                  {"label", CMD_LABEL},
+                                 {"print", CMD_PRINT},
                                  {"hlt", CMD_HLT}};
     size_t size_of_all_commands = sizeof(all_commands) / sizeof(CMD);
 
@@ -337,7 +350,7 @@ int main()
 
 
     struct ASM Asm = {0};
-    (Asm.file_pointer) = fopen("Assembler/source/text_cpu_commands.txt", "rb");
+    (Asm.file_pointer) = fopen("Assembler/source/test_commands.txt", "rb");
     Errors_of_ASM error = get_count_of_rows(&Asm);
     if (error != NO_ASM_ERRORS)
     {

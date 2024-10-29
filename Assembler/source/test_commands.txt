@@ -1,4 +1,10 @@
 push 3.14
-sin
-out
+dump
+push ax
+dump
+push 2
+dump
+push [0]
+dump
+print
 hlt

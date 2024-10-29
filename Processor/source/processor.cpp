@@ -100,6 +100,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
     spu->registers = (int *) calloc(4, sizeof(int));
     spu->size_of_registers = 4;
     (spu->registers)[0] = 1;
+    spu->ram = (int *) calloc(RAM_SIZE, sizeof(int));
     Errors error = NO_ERRORS;
     size_t i = 0;
     bool flag = false;
@@ -115,20 +116,31 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_PUSH:
             {
                 i++;
-                Stack_Elem_t elem = ((spu->commands)[i] / pow(10, ACCURANCY));;
+                Stack_Elem_t elem = ((spu->commands)[i] / pow(10, ACCURANCY));
                 i++;
                 Registers reg = (Registers)(spu->commands)[i];
+                i++;
+                int ram_address = (spu->commands)[i];
                 if (reg == NOT_A_REGISTER)
                 {
                     if (elem == TOXIC)
                     {
-                        return ERROR_OF_GET_PUSH_CMD;
+                        if (ram_address == -1)
+                        {
+                            return ERROR_OF_GET_PUSH_CMD;
+                        }
+                        Stack_Elem_t operand = 0;
+                        error = stack_pop(spu->stack, &operand);
+                        (spu->ram)[ram_address] = operand;
                     }
-                    error = stack_push(spu->stack, elem);
+                    else
+                    {
+                        error = stack_push(spu->stack, elem);
+                    }
                 }
                 else
                 {
-                    if (elem != TOXIC)
+                    if (elem != TOXIC || ram_address != -1)
                     {
                         return ERROR_OF_GET_PUSH_CMD;
                     }
@@ -140,22 +152,29 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_POP:
             {
                 i++;
-                Stack_Elem_t elem = (spu->commands)[i];
+                Stack_Elem_t elem = ((spu->commands)[i] / pow(10, ACCURANCY));
                 i++;
                 Registers reg = (Registers)(spu->commands)[i];
+                i++;
+                int ram_address = (spu->commands)[i];
                 if (reg == NOT_A_REGISTER)
                 {
-                    if (elem == (TOXIC * pow(10, ACCURANCY)))
+                    if (elem == TOXIC)
                     {
-                        return ERROR_OF_GET_PUSH_CMD;
+                        if (ram_address == -1)
+                        {
+                            return ERROR_OF_GET_POP_CMD;
+                        }
+                        Stack_Elem_t operand = (double)(spu->ram)[ram_address];
+                        error = stack_push(spu->stack, elem);
                     }
                     error = stack_pop(spu->stack, &elem);
                 }
                 else
                 {
-                    if (elem != (TOXIC * pow(10, ACCURANCY)))
+                    if (elem != TOXIC || ram_address != -1)
                     {
-                        return ERROR_OF_GET_PUSH_CMD;
+                        return ERROR_OF_GET_POP_CMD;
                     }
                     Stack_Elem_t operand = 0;
                     error = stack_pop(spu->stack, &operand);
@@ -230,11 +249,21 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 special_dump(spu->stack);
                 break;
             }
+            case CMD_PRINT:
+            {
+                printf("RAM:\n");
+                for (long long int j = 0; j < RAM_SIZE; j++)
+                {
+                    printf("%d ", (spu->ram)[j]);
+                }
+                printf("\n");
+                break;
+            }
             case CMD_IN:
             {
                 Stack_Elem_t element = 0;
                 printf("Enter the element: ");
-                scanf("%d", &element);
+                scanf("%lf", &element);
                 error = stack_push(spu->stack, element);
                 break;
             }
@@ -395,6 +424,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
     free(spu->registers);
     error = stack_destructor(spu->stack);
     free(spu->stack);
+    free(spu->ram);
     return NO_CPU_ERRORS;
 }
 

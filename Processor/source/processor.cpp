@@ -99,7 +99,6 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
     STACK_CTOR(spu->stack, 10);
     spu->registers = (int *) calloc(4, sizeof(int));
     spu->size_of_registers = 4;
-    (spu->registers)[0] = 1;
     spu->ram = (int *) calloc(RAM_SIZE, sizeof(int));
     Errors error = NO_ERRORS;
     size_t i = 0;
@@ -136,6 +135,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                     else
                     {
                         error = stack_push(spu->stack, elem);
+
                     }
                 }
                 else
@@ -303,6 +303,8 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JMP:
             {
                 i++;
+                Registers reg = (Registers)(spu->commands)[i];
+                i++;
                 int position = (spu->commands[i]);
                 i = (size_t)position;
                 break;
@@ -310,9 +312,12 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JA:
             {
                 i++;
+                Registers reg = (Registers)(spu->commands)[i];
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                if ((spu->registers)[0] > operand)
+                i++;
+                //printf("register = %d\n", (spu->registers)[reg - 1]);
+                if ((spu->registers)[reg - 1] > operand)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -326,9 +331,12 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JB:
             {
                 i++;
+                Registers reg = (Registers)(spu->commands)[i];
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                if ((spu->registers)[0] < operand)
+                i++;
+                //printf("register = %d\n", (spu->registers)[reg - 1]);
+                if ((spu->registers)[reg - 1] < operand)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -342,9 +350,12 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JAE:
             {
                 i++;
+                Registers reg = (Registers)(spu->commands)[i];
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                if ((spu->registers)[0] >= operand)
+                i++;
+                //printf("register = %d\n", (spu->registers)[reg - 1]);
+                if ((spu->registers)[reg - 1] >= operand)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -358,9 +369,12 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JBE:
             {
                 i++;
+                Registers reg = (Registers)(spu->commands)[i];
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                if ((spu->registers)[0] <= operand)
+                i++;
+                //printf("register = %d\n", (spu->registers)[reg - 1]);
+                if ((spu->registers)[reg - 1] <= operand)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -374,9 +388,12 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JE:
             {
                 i++;
+                Registers reg = (Registers)(spu->commands)[i];
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                if ((spu->registers)[0] == operand)
+                i++;
+                //printf("register = %d\n", (spu->registers)[reg - 1]);
+                if ((spu->registers)[reg - 1] == operand)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -390,9 +407,12 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JNE:
             {
                 i++;
+                Registers reg = (Registers)(spu->commands)[i];
                 Stack_Elem_t operand = 0;
                 error = stack_pop(spu->stack, &operand);
-                if ((spu->registers)[0] != operand)
+                i++;
+                //printf("register = %d\n", (spu->registers)[reg - 1]);
+                if ((spu->registers)[reg - 1] != operand)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;

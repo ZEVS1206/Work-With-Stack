@@ -1,10 +1,8 @@
-push 3.14
-dump
-push ax
-dump
-push 2
-dump
-push [0]
-dump
-print
+push 10
+NEXT:
+push 20
+pop ax
+push 20
+out
+je ax NEXT:
 hlt

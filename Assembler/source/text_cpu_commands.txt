@@ -1,8 +1,8 @@
 push 0
 pop ax
-push ax
-push ax
 NEXT:
+push ax
+push ax
 mul
 out
 push ax
@@ -11,5 +11,5 @@ add
 pop ax
 push ax
 push 10
-jb NEXT:
+jb ax NEXT:
 hlt

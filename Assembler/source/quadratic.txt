@@ -1,0 +1,6 @@
+in
+in
+in
+push dx
+push cx
+push bx

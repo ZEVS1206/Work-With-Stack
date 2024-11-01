@@ -1,22 +1,19 @@
-in
-in
-in
-pop cx
-pop bx
+push 0
 pop ax
-push 0
-je ax A=0:
-push 0
-je bx B=0:
-push 0
-je cx C=0:
-hlt
+
 A=0:
-here
-hlt
-B=0:
-inf
-hlt
-C=0:
-none
+
+push ax
+push ax
+mul
+out
+
+push ax
+push 1
+add
+
+pop ax
+push ax
+push 10
+jb ax A=0:
 hlt

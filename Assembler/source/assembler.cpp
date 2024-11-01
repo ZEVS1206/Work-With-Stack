@@ -427,6 +427,19 @@ static Errors_of_ASM get_count_of_rows(struct ASM *Asm)
         }
     }
     rewind(Asm->file_pointer);
+    int cnt = 0;
+    c = getc(Asm->file_pointer);
+    int c1 = c;
+    while ((c = getc(Asm->file_pointer)) != EOF)
+    {
+        if (c1 == '\n' && c == '\n')
+        {
+            cnt++;
+        }
+        c1 = c;
+    }
+    Asm->count_of_rows -= cnt;
+    rewind(Asm->file_pointer);
     return NO_ASM_ERRORS;
 }
 

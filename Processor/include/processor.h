@@ -66,7 +66,7 @@ struct MySPU
     MyStack *stack;
     int *registers;
     size_t size_of_registers;
-    int *ram;
+    Stack_Elem_t *ram;
 };
 
 Errors_of_CPU create_commands();

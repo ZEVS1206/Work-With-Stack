@@ -8,7 +8,6 @@
 #include "../../Processor/include/processor.h"
 #include "assembler.h"
 
-#define SIZE 10
 
 static const int num_of_labels = 10;
 
@@ -20,8 +19,8 @@ static Errors_of_ASM parse_label(struct ASM *Asm, int *step, size_t index, struc
 static Errors_of_ASM parse_push_pop_cmd(struct ASM *Asm, size_t index);
 static Errors_of_ASM new_parse_jump_cmds(struct ASM *Asm, size_t index);
 static Errors_of_ASM parse_jump_cmds(struct ASM *Asm, size_t index);
-static Errors_of_ASM repeat_get_commands(struct ASM *Asm, struct Labels *all_labels, size_t size_of_all_labels);
-static Errors_of_ASM new_parse_word(struct ASM *Asm, size_t len, size_t index, struct Labels *all_labels, size_t size_of_all_labels);
+static Errors_of_ASM repeat_get_commands(struct ASM *Asm);
+static Errors_of_ASM new_parse_word(struct ASM *Asm, size_t index);
 
 
 static Errors_of_ASM new_parse_jump_cmds(struct ASM *Asm, size_t index)
@@ -41,7 +40,7 @@ static Errors_of_ASM new_parse_jump_cmds(struct ASM *Asm, size_t index)
     return NO_ASM_ERRORS;
 }
 
-static Errors_of_ASM repeat_get_commands(struct ASM *Asm, struct Labels *all_labels, size_t size_of_all_labels)
+static Errors_of_ASM repeat_get_commands(struct ASM *Asm)
 {
     if (Asm == NULL)
     {
@@ -55,14 +54,13 @@ static Errors_of_ASM repeat_get_commands(struct ASM *Asm, struct Labels *all_lab
     // }
     while (i < (Asm->count_of_rows))
     {
-        size_t len = strlen((Asm->commands)[i].command);
-        error = new_parse_word(Asm, len, i, all_labels, size_of_all_labels);
+        error = new_parse_word(Asm, i);
         i++;
     }
     return error;
 }
 
-static Errors_of_ASM new_parse_word(struct ASM *Asm, size_t len, size_t index, struct Labels *all_labels, size_t size_of_all_labels)
+static Errors_of_ASM new_parse_word(struct ASM *Asm, size_t index)
 {
     Errors_of_ASM error = NO_ASM_ERRORS;
     if (Asm == NULL)
@@ -279,14 +277,10 @@ Errors_of_ASM get_commands(struct ASM *Asm, struct Labels *all_labels, size_t si
     size_t i = 0;
     int step = 0;
     Errors_of_ASM error = NO_ASM_ERRORS;
-    //char str[50] = {0};
     while (i < (Asm->count_of_rows) && fscanf(Asm->file_pointer, "%s", (Asm->commands)[i].command))
     {
         size_t len = strlen((Asm->commands)[i].command);
-        //printf("command = %s\n", (Asm->commands)[i].command);
-        //memcpy((Asm->commands)[i].command, str, len);
         error = parse_word(Asm, &step, len, i, all_labels, size_of_all_labels);
-        //printf("i = %lu step = %d\n", i, step);
         i++;
     }
     return error;
@@ -438,7 +432,7 @@ static Errors_of_ASM get_count_of_rows(struct ASM *Asm)
         }
         c1 = c;
     }
-    Asm->count_of_rows -= cnt;
+    Asm->count_of_rows -= (size_t)cnt;
     rewind(Asm->file_pointer);
     return NO_ASM_ERRORS;
 }
@@ -510,7 +504,7 @@ int main()
         fprintf(stderr, "error=%d\n", error);
         return 0;
     }
-    error = repeat_get_commands(&Asm, all_labels, size_of_all_labels);
+    error = repeat_get_commands(&Asm);
     if (error != NO_ASM_ERRORS)
     {
         fprintf(stderr, "error=%d\n", error);

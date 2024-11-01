@@ -8,7 +8,7 @@
 #include "stack.h"
 #include "processor.h"
 
-
+static int compare(double a, double b);
 
 Errors_of_CPU create_commands()
 {
@@ -80,7 +80,7 @@ Errors_of_CPU create_commands()
         {
             char *end = NULL;
             double element = strtod(tmp, &end);
-            (spu.commands)[j] = (element * pow(10, ACCURANCY));
+            (spu.commands)[j] = (int)(element * pow(10, ACCURANCY));
         }
         j++;
         i++;
@@ -92,6 +92,23 @@ Errors_of_CPU create_commands()
 }
 
 
+static int compare(double a, double b)
+{
+    double eps = 1e-4;
+    if (b > a + eps)
+    {
+        return -1;
+    }
+    else if (b < a - eps)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 
 Errors_of_CPU do_cmd(struct MySPU *spu)
 {
@@ -99,7 +116,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
     STACK_CTOR(spu->stack, 10);
     spu->registers = (int *) calloc(4, sizeof(int));
     spu->size_of_registers = 4;
-    spu->ram = (int *) calloc(RAM_SIZE, sizeof(int));
+    spu->ram = (Stack_Elem_t *) calloc(RAM_SIZE, sizeof(int));
     Errors error = NO_ERRORS;
     size_t i = 0;
     bool flag = false;
@@ -128,7 +145,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 int ram_address = (spu->commands)[i];
                 if (reg == NOT_A_REGISTER)
                 {
-                    if (elem == TOXIC)
+                    if (compare(elem, TOXIC) == 0)
                     {
                         if (ram_address == -1)
                         {
@@ -146,7 +163,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 }
                 else
                 {
-                    if (elem != TOXIC || ram_address != -1)
+                    if (compare(elem, TOXIC) != 0 || ram_address != -1)
                     {
                         return ERROR_OF_GET_PUSH_CMD;
                     }
@@ -165,26 +182,26 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 int ram_address = (spu->commands)[i];
                 if (reg == NOT_A_REGISTER)
                 {
-                    if (elem == TOXIC)
+                    if (compare(elem, TOXIC) == 0)
                     {
                         if (ram_address == -1)
                         {
                             return ERROR_OF_GET_POP_CMD;
                         }
-                        Stack_Elem_t operand = (double)(spu->ram)[ram_address];
-                        error = stack_push(spu->stack, elem);
+                        Stack_Elem_t operand = (spu->ram)[ram_address];
+                        error = stack_push(spu->stack, operand);
                     }
                     error = stack_pop(spu->stack, &elem);
                 }
                 else
                 {
-                    if (elem != TOXIC || ram_address != -1)
+                    if (compare(elem, TOXIC) != 0 || ram_address != -1)
                     {
                         return ERROR_OF_GET_POP_CMD;
                     }
                     Stack_Elem_t operand = 0;
                     error = stack_pop(spu->stack, &operand);
-                    (spu->registers)[reg - 1] = operand;
+                    (spu->registers)[reg - 1] = (int)operand;
                     //printf("reg = %d\n", (spu->registers)[reg - 1]);
                 }
                 break;
@@ -261,7 +278,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 printf("RAM:\n");
                 for (long long int j = 0; j < RAM_SIZE; j++)
                 {
-                    printf("%d ", (spu->ram)[j]);
+                    printf("%lf ", (spu->ram)[j]);
                 }
                 printf("\n");
                 break;
@@ -310,7 +327,6 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
             case CMD_JMP:
             {
                 i++;
-                Registers reg = (Registers)(spu->commands)[i];
                 i++;
                 int position = (spu->commands[i]);
                 i = (size_t)position;
@@ -324,7 +340,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(spu->stack, &operand);
                 i++;
                 //printf("register = %d\n", (spu->registers)[reg - 1]);
-                if ((spu->registers)[reg - 1] > operand)
+                if (compare((spu->registers)[reg - 1], operand) > 0)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -343,7 +359,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(spu->stack, &operand);
                 i++;
                 //printf("register = %d\n", (spu->registers)[reg - 1]);
-                if ((spu->registers)[reg - 1] < operand)
+                if (compare((spu->registers)[reg - 1], operand) < 0)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -362,7 +378,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(spu->stack, &operand);
                 i++;
                 //printf("register = %d\n", (spu->registers)[reg - 1]);
-                if ((spu->registers)[reg - 1] >= operand)
+                if (compare((spu->registers)[reg - 1], operand) >= 0)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -381,7 +397,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(spu->stack, &operand);
                 i++;
                 //printf("register = %d\n", (spu->registers)[reg - 1]);
-                if ((spu->registers)[reg - 1] <= operand)
+                if (compare((spu->registers)[reg - 1], operand) <= 0)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -400,7 +416,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(spu->stack, &operand);
                 i++;
                 //printf("register = %d\n", (spu->registers)[reg - 1]);
-                if ((spu->registers)[reg - 1] == operand)
+                if (compare((spu->registers)[reg - 1], operand) == 0)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -419,7 +435,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 error = stack_pop(spu->stack, &operand);
                 i++;
                 //printf("register = %d\n", (spu->registers)[reg - 1]);
-                if ((spu->registers)[reg - 1] != operand)
+                if (compare((spu->registers)[reg - 1], operand) != 0)
                 {
                     int position = (spu->commands)[i];
                     i = (size_t)position;
@@ -462,6 +478,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
         }
         i++;
     }
+    printf("error_of_stack = %s\n", get_error(error));
     free(spu->commands);
     free(spu->registers);
     error = stack_destructor(spu->stack);
@@ -474,7 +491,7 @@ int main()
 {
     printf("Processor started!\n");
     Errors_of_CPU error = create_commands();
-    fprintf(stderr, "error=%d\n", error);
+    fprintf(stderr, "error_of_processor = %d\n", error);
     printf("Processor finished!\n");
     return 0;
 }

@@ -32,5 +32,3 @@ B=0:
 push 1
 out
 hlt
-
-

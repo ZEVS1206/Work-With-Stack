@@ -482,7 +482,7 @@ int main()
 
 
     struct ASM Asm = {0};
-    (Asm.file_pointer) = fopen("Assembler/source/quadratic.txt", "rb");
+    (Asm.file_pointer) = fopen("Assembler/source/factorial.txt", "rb");
     Errors_of_ASM error = get_count_of_rows(&Asm);
     //printf("count_of_rows = %lu\n", Asm.count_of_rows);
     if (error != NO_ASM_ERRORS)

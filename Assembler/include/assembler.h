@@ -3,6 +3,7 @@
 
 #include "../../Processor/include/processor.h"
 
+
 enum Errors_of_ASM
 {
     NO_ASM_ERRORS              = 0,
@@ -24,6 +25,7 @@ struct Command
     double element;
     Registers reg;
     int ram_address;
+    char label_name[50];
 };
 
 struct CMD

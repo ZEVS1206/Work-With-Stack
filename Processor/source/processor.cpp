@@ -103,8 +103,14 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
     Errors error = NO_ERRORS;
     size_t i = 0;
     bool flag = false;
+    //printf("ax bx cx dx\n");
     while (i < spu->size_of_commands)
     {
+        // for (size_t k = 0; k < (spu->size_of_registers); k++)
+        // {
+        //     printf("%d ", (spu->registers)[k]);
+        // }
+        // printf("\n");
         if (flag)
         {
             break;
@@ -179,6 +185,7 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                     Stack_Elem_t operand = 0;
                     error = stack_pop(spu->stack, &operand);
                     (spu->registers)[reg - 1] = operand;
+                    //printf("reg = %d\n", (spu->registers)[reg - 1]);
                 }
                 break;
             }
@@ -422,6 +429,21 @@ Errors_of_CPU do_cmd(struct MySPU *spu)
                 {
                     break;
                 }
+            }
+            case CMD_PRINT_INF:
+            {
+                printf("INF\n");
+                break;
+            }
+            case CMD_PRINT_NONE:
+            {
+                printf("NONE\n");
+                break;
+            }
+            case CMD_HERE:
+            {
+                printf("Here\n");
+                break;
             }
             case CMD_LABEL:
                 break;

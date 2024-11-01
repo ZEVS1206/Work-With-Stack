@@ -48,7 +48,7 @@ uint64_t hash(const struct MyStack *stack, int capacity)
     uint64_t result = 5381;
     for (int i = 0; i < capacity; i++)
     {
-        result = (result * 31) ^ (uint64_t)((stack->data)[i]);
+        result = (result * 31) ^ (uint64_t)(((stack->data)[i] < 0) ? -(stack->data)[i]: (stack->data)[i]);
     }
     return result;
 }

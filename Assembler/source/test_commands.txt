@@ -1,8 +1,22 @@
-push 10
-NEXT:
-push 20
+in
+in
+in
+pop cx
+pop bx
 pop ax
-push 20
-out
-je ax NEXT:
+push 0
+je ax A=0:
+push 0
+je bx B=0:
+push 0
+je cx C=0:
+hlt
+A=0:
+here
+hlt
+B=0:
+inf
+hlt
+C=0:
+none
 hlt
